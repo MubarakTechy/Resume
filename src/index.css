@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+.mark{
+    background-image: url(../src/image/2.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height: 100vh;
+    background-color: black;
+    background-attachment: fixed;
+}
+.shape{
+    border-block: 1px solid #CF1F1F;
+    padding: 10px;
+}
