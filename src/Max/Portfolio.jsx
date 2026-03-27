@@ -1,10 +1,10 @@
 import React from 'react';
-import photo1 from '../../src/image/1.jpg';
-import photo4 from '../../src/image/6.jpg';
-import photo5 from '../../src/image/3.jpg';
-import photo6 from '../../src/image/4.jpg';
-import photo2 from '../../src/image/2 (1).jpg';
-import photo7 from '../../src/image/bg-img.jpg';
+import photo1 from '../image/1.jpg';
+import photo4 from '../image/6.jpg';
+import photo5 from '../image/3.jpg';
+import photo6 from '../image/4.jpg';
+import photo2 from '../image/2 (1).jpg';
+import photo7 from '../image/bg-img.jpg';
 
 
 

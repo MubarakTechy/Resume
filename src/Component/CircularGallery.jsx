@@ -1,4 +1,3 @@
-'use client'
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl";
 import { useEffect, useRef } from "react";
 import "./CircularGallery.css";

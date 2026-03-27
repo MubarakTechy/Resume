@@ -1,108 +1,104 @@
+import React from 'react';
+import {
+  FiCode,
+  FiLayout,
+  FiDatabase,
+  FiSmartphone,
+  FiCloud,
+  FiSettings,
+} from 'react-icons/fi';
 
-import React, { useEffect, useRef } from 'react'
-import { FaChalkboardTeacher, FaLaptopCode, FaShieldAlt, FaUsersCog } from "react-icons/fa";
-import { BiLineChart } from "react-icons/bi";
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import gsap from "gsap";
-
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import 'swiper/css/scrollbar';
+const services = [
+  {
+    icon: FiCode,
+    title: 'Web Development',
+    description:
+      'Custom websites and web applications built with modern frameworks like React, Next.js, and Tailwind CSS. Focus on performance, scalability, and clean code.',
+  },
+  {
+    icon: FiLayout,
+    title: 'UI/UX Design',
+    description:
+      'User-centered design that combines aesthetics with functionality. I create intuitive interfaces that enhance user experience and engagement.',
+  },
+  {
+    icon: FiDatabase,
+    title: 'Backend Development',
+    description:
+      'Robust server-side solutions using Node.js, Python, and databases like PostgreSQL and MongoDB. Secure APIs and efficient data management.',
+  },
+  {
+    icon: FiSmartphone,
+    title: 'Responsive Design',
+    description:
+      'Mobile-first designs that work flawlessly across all devices. Ensuring your application looks and performs great on any screen size.',
+  },
+  {
+    icon: FiCloud,
+    title: 'Cloud Integration',
+    description:
+      'Deployment and scaling on cloud platforms like AWS, Vercel, and Firebase. Optimized for reliability and cost-efficiency.',
+  },
+  {
+    icon: FiSettings,
+    title: 'Maintenance & Support',
+    description:
+      'Ongoing support, bug fixes, and feature enhancements to keep your projects up-to-date and running smoothly.',
+  },
+];
 
 const Service = () => {
-  const sectionRef = useRef(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".service-card", {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out"
-      });
-      gsap.from(".service-title", {
-        opacity: 0,
-        y: -30,
-        duration: 1,
-        delay: 0.3,
-        ease: "back.out(1.7)"
-      });
-      gsap.from(".service-underline", {
-        scaleX: 0,
-        transformOrigin: "left",
-        duration: 1,
-        delay: 0.6,
-        ease: "power2.out"
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  const services = [
-    {
-      icon: <FaChalkboardTeacher size={50} className="text-[#CF1F1F] group-hover:text-white transition-colors duration-300" />,
-      title: "Learning Management Systems (LMS)",
-      description: "I design and develop scalable LMS platforms for schools and institutions, enabling online learning, course management, assignments, grading, and student progress tracking."
-    },
-    {
-      icon: <FaLaptopCode size={50} className="text-[#CF1F1F] group-hover:text-white transition-colors duration-300" />,
-      title: "Custom School Management Software",
-      description: "From attendance tracking to timetable automation, I build custom school management systems that streamline administration and enhance productivity for educators and administrators."
-    },
-    {
-      icon: <FaUsersCog size={50} className="text-[#CF1F1F] group-hover:text-white transition-colors duration-300" />,
-      title: "Student & Staff Portals",
-      description: "I create user-friendly portals where students, parents, and teachers can seamlessly connect—sharing assignments, announcements, reports, and communication all in one platform."
-    },
-    {
-      icon: <BiLineChart size={50} className="text-[#CF1F1F] group-hover:text-white transition-colors duration-300" />,
-      title: "Analytics & Reporting",
-      description: "Schools need insights. I integrate advanced analytics dashboards that provide real-time reports on student performance, teacher efficiency, and school operations."
-    },
-    {
-      icon: <FaShieldAlt size={50} className="text-[#CF1F1F] group-hover:text-white transition-colors duration-300" />,
-      title: "Security & Cloud Integration",
-      description: "With my expertise in cloud and security, I implement secure, scalable systems that ensure data privacy and seamless integration with modern cloud technologies."
-    }
-  ];
-
   return (
-    <div ref={sectionRef} id='Service' className='py-16 px-4 md:px-10 bg-[#0F0F0F] overflow-hidden'>
-      <div className='flex flex-col items-center mb-12'>
-        <h1 className='service-title font-bold text-3xl md:text-5xl text-[#E9E9E9] mb-2'>What I Offer</h1>
-        <div className='service-underline w-[15vw] max-sm:w-[20vw] h-1 bg-[#CF1F1F] rounded-full'></div>
+    <section id="services" className="relative px-4 py-20 overflow-hidden md:px-8 bg-gradient-to-b from-black via-gray-900 to-black">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 w-[500px] h-[500px] bg-[#CF1F1F] rounded-full blur-[120px] opacity-10 -translate-x-1/2" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-600 rounded-full blur-[100px] opacity-10" />
       </div>
 
-      <div className='max-w-6xl mx-auto'>
-        <Swiper
-         modules={[Navigation, Pagination, Autoplay]}
-         spaceBetween={30}
-         slidesPerView={1}
-         autoplay={{ delay: 5000, disableOnInteraction: false }}
-         breakpoints={{
-           640: { slidesPerView: 1 },
-           768: { slidesPerView: 2 },
-           1024: { slidesPerView: 3 }, 
-         }}
-          className='pb-12'
-        >
-          {services.map((service, index) => (
-            <SwiperSlide key={index}>
-              <div className='service-card group h-full bg-[#1A1A1A] rounded-2xl p-8 flex flex-col items-center text-center transition-all duration-300 hover:bg-black hover:shadow-lg hover:shadow-[#CF1F1F]/20 hover:-translate-y-2'>
-                <div className='mb-4'>{service.icon}</div>
-                <h2 className='font-mono text-2xl md:text-3xl text-[#E9E9E9] mb-4'>{service.title}</h2>
-                <p className='font-mono text-sm text-[#E9E9E9] opacity-75'>{service.description}</p>
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-16 text-center">
+          <h2 className="text-4xl font-bold text-transparent md:text-5xl bg-gradient-to-r from-white to-gray-400 bg-clip-text">
+            What I Do
+          </h2>
+          <div className="w-20 h-1 bg-[#CF1F1F] mx-auto mt-4 rounded-full" />
+          <p className="max-w-2xl mx-auto mt-6 text-lg text-gray-400">
+            I craft digital experiences that are both powerful and elegant.
+          </p>
+        </div>
+
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service, index) => {
+            const Icon = service.icon;
+            return (
+              <div
+                key={index}
+                className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:bg-white/10 hover:scale-105 hover:shadow-xl hover:shadow-[#CF1F1F]/10"
+              >
+                {/* Gradient border on hover */}
+                <div className="absolute inset-0 transition-opacity duration-300 opacity-0 pointer-events-none rounded-2xl group-hover:opacity-100">
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#CF1F1F] to-purple-500 opacity-20 blur-md" />
+                </div>
+
+                <div className="relative z-10">
+                  <div className="mb-4 inline-flex p-3 bg-[#CF1F1F]/10 rounded-xl text-[#CF1F1F] group-hover:bg-[#CF1F1F] group-hover:text-white transition-all duration-300">
+                    <Icon size={28} />
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold text-white">
+                    {service.title}
+                  </h3>
+                  <p className="leading-relaxed text-gray-400">
+                    {service.description}
+                  </p>
+                </div>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

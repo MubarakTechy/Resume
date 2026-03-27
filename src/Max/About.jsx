@@ -1,214 +1,121 @@
-import React, { useEffect, useRef } from 'react'
-import { FaChalkboardTeacher } from 'react-icons/fa'
-import { AiOutlineUser } from 'react-icons/ai'
-import { IoSchool } from 'react-icons/io5'
-import gsap from 'gsap'
-import { Renderer, Camera, Transform, Program, Mesh, Plane, Vec2 } from 'ogl'
+import React, { useEffect, useRef } from 'react';
+import { FiGithub, FiMail, FiExternalLink } from 'react-icons/fi';
 
-export default function AboutMassive() {
-  const rootRef = useRef(null)
-  const canvasWrapRef = useRef(null)
-  const imageRef = useRef(null)
-  const textRef = useRef(null)
-  const buttonsRef = useRef([])
+export default function About() {
+  const containerRef = useRef(null);
+  const imageRef = useRef(null);
+  const textRef = useRef(null);
 
-  // Animations
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(rootRef.current, { opacity: 0, y: 24, duration: 0.8, ease: 'power3.out' })
-      gsap.from(imageRef.current, { opacity: 0, scale: 0.9, x: -24, duration: 0.9, ease: 'power3.out', delay: 0.1 })
-      gsap.from(textRef.current, { opacity: 0, x: 24, duration: 0.9, ease: 'power3.out', delay: 0.15 })
-      gsap.from(buttonsRef.current, { opacity: 0, y: 14, duration: 0.6, stagger: 0.08, ease: 'back.out(1.6)', delay: 0.35 })
-    }, rootRef)
+    // Simple fade-in on mount (no GSAP)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('opacity-100', 'translate-y-0');
+            entry.target.classList.remove('opacity-0', 'translate-y-8');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
 
-    return () => ctx.revert()
-  }, [])
+    if (containerRef.current) observer.observe(containerRef.current);
+    if (imageRef.current) observer.observe(imageRef.current);
+    if (textRef.current) observer.observe(textRef.current);
 
-  // OGL Background
-  useEffect(() => {
-    let renderer, gl, camera, scene, mesh, prog, rafId
-    let time = 0
-    const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1)
-    const el = canvasWrapRef.current
-    if (!el) return
-
-    try {
-      renderer = new Renderer({ dpr, alpha: true, antialias: true })
-      gl = renderer.gl
-      gl.clearColor(0, 0, 0, 1)
-      el.appendChild(gl.canvas)
-
-      camera = new Camera(gl, { fov: 24 })
-      camera.position.set(0, 0, 6)
-      scene = new Transform()
-
-      const setSize = () => {
-        const { clientWidth: w, clientHeight: h } = el
-        renderer.setSize(w, h)
-        camera.perspective({ aspect: w / Math.max(1, h) })
-      }
-      setSize()
-      window.addEventListener('resize', setSize)
-
-      const vertex = /* glsl */ `
-        precision highp float;
-        attribute vec2 uv;
-        attribute vec3 position;
-        uniform mat4 projectionMatrix;
-        uniform mat4 viewMatrix;
-        uniform mat4 modelMatrix;
-        uniform float uTime;
-        uniform vec2 uMouse;
-        varying vec2 vUv;
-        varying float vNoise;
-        float hash(vec2 p){
-          p = 50.0 * fract(p * 0.3183099 + vec2(0.1, 0.7));
-          return -1.0 + 2.0 * fract(p.x * p.y * (p.x + p.y));
-        }
-        float noise(in vec2 p){
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          vec2 u = f*f*(3.0-2.0*f);
-          return mix(mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), u.x),
-                     mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), u.x), u.y);
-        }
-        void main(){
-          vUv = uv;
-          vec3 pos = position;
-          float n = noise(uv * 3.0 + uTime * 0.05) * 0.5 + 0.5;
-          vNoise = n;
-          pos.z += n * 0.8;
-          pos.x += (uMouse.x - 0.5) * 0.3 * (uv.y - 0.5);
-          pos.y += (uMouse.y - 0.5) * 0.3 * (uv.x - 0.5);
-          gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.0);
-        }
-      `
-
-      const fragment = /* glsl */ `
-        precision highp float;
-        varying vec2 vUv;
-        varying float vNoise;
-        uniform float uTime;
-        vec3 ramp(float t){
-          vec3 a = vec3(0.0,0.0,0.0);
-          vec3 b = vec3(0.1,0.1,0.1);
-          return mix(a,b,smoothstep(0.0,1.0,t));
-        }
-        void main(){
-          float t = vNoise;
-          float band = smoothstep(0.46,0.5,abs(sin(uTime*0.3)-(vUv.y-0.5)));
-          vec3 col = ramp(t) + band*0.05;
-          float d = distance(vUv, vec2(0.5));
-          float vig = smoothstep(0.9,0.3,d);
-          col *= vig;
-          gl_FragColor = vec4(col,0.95);
-        }
-      `
-
-      prog = new Program(gl, {
-        vertex,
-        fragment,
-        uniforms: {
-          uTime: { value: 0 },
-          uMouse: { value: new Vec2(0.5, 0.5) },
-        },
-        transparent: true,
-      })
-
-      const geometry = new Plane(gl, { width: 12, height: 8, widthSegments: 200, heightSegments: 120 })
-      mesh = new Mesh(gl, { geometry, program: prog })
-      mesh.setParent(scene)
-
-      const onPointer = (e) => {
-        const r = gl.canvas.getBoundingClientRect()
-        const x = ((e.clientX - r.left) / r.width)
-        const y = ((e.clientY - r.top) / r.height)
-        prog.uniforms.uMouse.value.set(x, 1.0 - y)
-      }
-      window.addEventListener('pointermove', onPointer)
-
-      const update = () => {
-        time += 0.016
-        prog.uniforms.uTime.value = time
-        renderer.render({ scene, camera })
-        rafId = requestAnimationFrame(update)
-      }
-      update()
-
-      return () => {
-        cancelAnimationFrame(rafId)
-        window.removeEventListener('pointermove', onPointer)
-        window.removeEventListener('resize', setSize)
-        if (gl && gl.canvas && gl.canvas.parentNode) gl.canvas.parentNode.removeChild(gl.canvas)
-      }
-    } catch (err) {
-      console.warn('OGL init failed:', err)
-    }
-  }, [])
-
-  const buttons = [
-    { icon: <IoSchool size={28} />, text: 'EdTech Developer', variant: 'primary' },
-    { icon: <AiOutlineUser size={28} />, text: 'System Architect', variant: 'outline' },
-    { icon: <FaChalkboardTeacher size={28} />, text: 'School Solutions', variant: 'primary' },
-  ]
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="About" ref={rootRef} className="relative w-full overflow-hidden bg-black text-white">
-      {/* Background */}
-      <div ref={canvasWrapRef} className="absolute inset-0 -z-10 pointer-events-none" aria-hidden />
-      <div className="absolute inset-0 -z-20 bg-black" />
+    <section
+      id="about"
+      className="relative w-full py-20 overflow-hidden text-white bg-gradient-to-br from-gray-900 via-black to-gray-900"
+    >
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 -left-4 h-72 w-72 rounded-full bg-[#CF1F1F] opacity-20 blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 delay-1000 bg-purple-600 rounded-full -right-4 h-80 w-80 opacity-20 blur-3xl animate-pulse" />
+      </div>
 
-      {/* Content */}
-      <div className="mx-auto flex max-w-7xl flex-col md:flex-row items-center justify-between gap-12 px-6 py-20">
-        
-        {/* Image Panel */}
-        <div
-          ref={imageRef}
-          className="relative w-full md:w-[460px] rounded-[2rem] overflow-hidden border border-white/10 bg-white/5 p-1 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
-          style={{
-            clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 100%)',
-          }}
-        >
-          <img
-            src="../src/image/press.jpg"
-            alt="About me"
-            className="w-full h-[80vh] object-cover rounded-[2rem]"
-          />
-        </div>
+      <div className="px-6 mx-auto max-w-7xl md:px-8">
+        <div className="flex flex-col-reverse items-center gap-12 lg:flex-row lg:gap-16">
+          {/* Image with decorative border */}
+          <div
+            ref={imageRef}
+            className="relative w-full max-w-md transition-all duration-700 ease-out translate-y-8 opacity-0"
+          >
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#CF1F1F] to-purple-500 opacity-75 blur-lg" />
+            <div className="relative overflow-hidden rounded-2xl bg-gray-800/50 backdrop-blur-sm">
+              <img
+                src="../src/image/press.jpg" // replace with your actual image path
+                alt="Abdulkadir Mubarak"
+                className="object-cover w-full h-auto transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+          </div>
 
-        {/* Text Panel */}
-        <div ref={textRef} className="flex flex-col gap-6 max-w-2xl">
-          <h2 className="font-mono text-4xl md:text-5xl text-[#CF1F1F]">About Me</h2>
-          <p className="font-mono text-base text-white/80 leading-relaxed">
-            I&apos;m <span className="font-bold text-[#CF1F1F]">Abdulkadir Mubarak</span>, a professional software developer specializing in <span className="font-bold">EdTech solutions</span> and <span className="font-bold">School Management Systems</span>. I create robust platforms that empower schools, teachers, and students through technology.
-          </p>
-          <p className="font-mono text-base text-white/80 leading-relaxed">
-            My expertise includes designing end-to-end digital solutions for school administration, e-learning integration, attendance tracking, grading systems, parent-teacher communication, and seamless online enrollment. Every project I undertake is aimed at modernizing education and improving efficiency in school operations.
-          </p>
-          <p className="font-mono text-base text-white/80 leading-relaxed">
-            With strong technical skills and a deep understanding of the educational sector, I ensure the platforms I develop are secure, scalable, and user-friendly. Beyond development, I collaborate closely with educators and stakeholders to translate their needs into actionable, innovative solutions.
-          </p>
+          {/* Text content */}
+          <div
+            ref={textRef}
+            className="flex flex-col max-w-2xl space-y-6 transition-all duration-700 ease-out delay-200 translate-y-8 opacity-0"
+          >
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
+              <span className="bg-gradient-to-r from-[#CF1F1F] to-purple-400 bg-clip-text text-transparent">
+                About Me
+              </span>
+            </h2>
 
-          {/* Buttons */}
-          <div className="mt-4 flex flex-wrap items-center justify-center md:justify-start gap-4">
-            {buttons.map((btn, i) => (
-              <button
-                key={i}
-                ref={(el) => (buttonsRef.current[i] = el)}
-                className={[
-                  'group inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-mono text-[16px] transition-transform duration-200',
-                  btn.variant === 'primary'
-                    ? 'bg-[#CF1F1F] text-white hover:scale-[1.02] hover:bg-black'
-                    : 'border border-white/30 bg-transparent text-white hover:scale-[1.02] hover:bg-white/10',
-                ].join(' ')}
+            <p className="text-base leading-relaxed text-gray-300 md:text-lg">
+              Hi, I'm <span className="font-semibold text-white">Abdulkadir Mubarak</span> a
+              passionate <span className="text-[#CF1F1F]">Full Stack Developer</span> and
+              creative problem solver. I build digital experiences that are both functional and
+              beautiful, focusing on clean code, performance, and user-centric design.
+            </p>
+
+            <p className="text-base leading-relaxed text-gray-300 md:text-lg">
+              My journey started with a curiosity for how things work, and that curiosity evolved
+              into a career crafting web applications, interactive interfaces, and robust backend
+              systems. I thrive on turning complex ideas into elegant solutions that people love
+              to use.
+            </p>
+
+            <p className="text-base leading-relaxed text-gray-300 md:text-lg">
+              When I'm not coding, you'll find me exploring new technologies, contributing to
+              open-source, or sharing knowledge with fellow developers. I believe in continuous
+              learning and the power of collaboration to create meaningful impact.
+            </p>
+
+            {/* Call-to-action buttons */}
+            <div className="flex flex-wrap gap-4 pt-4">
+              <a
+                href="#projects"
+                className="group inline-flex items-center gap-2 rounded-full bg-[#CF1F1F] px-6 py-3 font-medium text-white transition-all hover:bg-white hover:text-black hover:shadow-lg"
               >
-                <span className="transition-transform duration-200 group-hover:-translate-y-0.5">{btn.icon}</span>
-                {btn.text}
-              </button>
-            ))}
+                View Projects
+                <FiExternalLink className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+              <a
+                href="https://github.com/yourusername"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 rounded-full border border-gray-500 bg-transparent px-6 py-3 font-medium text-white transition-all hover:border-[#CF1F1F] hover:bg-[#CF1F1F]/10"
+              >
+                <FiGithub />
+                GitHub
+              </a>
+              <a
+                href="mailto:your.email@example.com"
+                className="group inline-flex items-center gap-2 rounded-full border border-gray-500 bg-transparent px-6 py-3 font-medium text-white transition-all hover:border-[#CF1F1F] hover:bg-[#CF1F1F]/10"
+              >
+                <FiMail />
+                Contact
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
